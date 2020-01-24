@@ -1,0 +1,11 @@
+[
+{
+  "modid": "timetolive",
+  "name": "Time To Live",
+  "description": "This mod simply displays a countdown timer of the remaining time a TNT entity has left.",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "authorList": ["Schauweg"],
+  "logoFile": "logo.png"
+}
+]

@@ -1,54 +1,54 @@
 package schauweg.timetolive;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.multiplayer.WorldClient;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.culling.Frustum;
-import net.minecraft.client.renderer.entity.EntityRendererManager;
+import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.client.world.ClientWorld;
+import net.minecraft.client.renderer.vertex.VertexBuffer;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.TNTEntity;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.entity.item.EntityTNTPrimed;
+import net.minecraft.util.BlockPos;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.opengl.GL11;
 
 public class TNTCountdownRenderer {
 
     @SubscribeEvent
-    public void onRenderWorldLast(RenderWorldLastEvent event) {
-
-        Minecraft mc = Minecraft.getInstance();
+    public void onWorldRenderLast(RenderWorldLastEvent event) {
+        Minecraft mc = Minecraft.getMinecraft();
 
         Entity cameraEntity = mc.getRenderViewEntity();
         BlockPos renderingVector = cameraEntity.getPosition();
         Frustum frustum = new Frustum();
 
-        float partialTicks = event.getPartialTicks();
+        float partialTicks = event.partialTicks;
         double viewX = cameraEntity.lastTickPosX + (cameraEntity.posX - cameraEntity.lastTickPosX) * partialTicks;
         double viewY = cameraEntity.lastTickPosY + (cameraEntity.posY - cameraEntity.lastTickPosY) * partialTicks;
         double viewZ = cameraEntity.lastTickPosZ + (cameraEntity.posZ - cameraEntity.lastTickPosZ) * partialTicks;
         frustum.setPosition(viewX, viewY, viewZ);
 
-        ClientWorld client = mc.world;
-        Iterable<Entity> entitiesById = client.getAllEntities();
+        WorldClient client = mc.theWorld;
+        Iterable<Entity> entitiesById = client.getLoadedEntityList();
 
         for(Entity entity : entitiesById) {
-            if (entity != null && entity instanceof TNTEntity && entity.isInRangeToRender3d(renderingVector.getX(), renderingVector.getY(), renderingVector.getZ()) && (entity.ignoreFrustumCheck || frustum.isBoundingBoxInFrustum(entity.getBoundingBox()))){
-                renderFuseCountdown((TNTEntity) entity, partialTicks, 0.5F);
+            if (entity != null && entity instanceof EntityTNTPrimed && entity.isInRangeToRender3d(renderingVector.getX(), renderingVector.getY(), renderingVector.getZ())){
+                renderFuseCountdown((EntityTNTPrimed) entity, partialTicks, 0.5F);
             }
         }
-
     }
 
-    private void renderFuseCountdown(TNTEntity passedEntity, float partialTicks, float nameOffset) {
-        Minecraft mc = Minecraft.getInstance();
+
+    private void renderFuseCountdown(EntityTNTPrimed passedEntity, float partialTicks, float nameOffset) {
+        Minecraft mc = Minecraft.getMinecraft();
         float pastTranslate = 0F;
 
-        int fuse = passedEntity.getFuse();
+        int fuse = passedEntity.fuse;
 
         String fuseText = ticksToTime(fuse);
 
@@ -56,52 +56,51 @@ public class TNTCountdownRenderer {
         double y = passedEntity.lastTickPosY + (passedEntity.posY - passedEntity.lastTickPosY) * partialTicks;
         double z = passedEntity.lastTickPosZ + (passedEntity.posZ - passedEntity.lastTickPosZ) * partialTicks;
 
-        EntityRendererManager renderManager = Minecraft.getInstance().getRenderManager();
-        double renderPosX = ObfuscationReflectionHelper.getPrivateValue(EntityRendererManager.class, renderManager, "field_78725_b"); //renderPosX
-        double renderPosY = ObfuscationReflectionHelper.getPrivateValue(EntityRendererManager.class, renderManager, "field_78726_c"); //renderPosY
-        double renderPosZ = ObfuscationReflectionHelper.getPrivateValue(EntityRendererManager.class, renderManager, "field_78723_d"); //renderPosZ
+        RenderManager renderManager = Minecraft.getMinecraft().getRenderManager();
+        double renderPosX = ObfuscationReflectionHelper.getPrivateValue(RenderManager.class, renderManager, "field_78725_b"); //renderPosX
+        double renderPosY = ObfuscationReflectionHelper.getPrivateValue(RenderManager.class, renderManager, "field_78726_c"); //renderPosY
+        double renderPosZ = ObfuscationReflectionHelper.getPrivateValue(RenderManager.class, renderManager, "field_78723_d"); //renderPosZ
 
-        GlStateManager.translatef(0F, pastTranslate, 0F);
+        GlStateManager.translate(0F, pastTranslate, 0F);
 
         float scale = 0.026666672F;
 
         GlStateManager.pushMatrix();
-        GlStateManager.translatef((float) (x - renderPosX), (float) (y - renderPosY + passedEntity.getHeight()) + nameOffset, (float) (z - renderPosZ));
+        GlStateManager.translate((float) (x - renderPosX), (float) (y - renderPosY + passedEntity.height) + nameOffset, (float) (z - renderPosZ));
         GL11.glNormal3f(0.0F, 1.0F, 0.0F);
-        GlStateManager.rotatef(-renderManager.playerViewY, 0.0F, 1.0F, 0.0F);
-        GlStateManager.rotatef(renderManager.playerViewX, 1.0F, 0.0F, 0.0F);
-        GlStateManager.scalef(-scale, -scale, scale);
+        GlStateManager.rotate(-renderManager.playerViewY, 0.0F, 1.0F, 0.0F);
+        GlStateManager.rotate(renderManager.playerViewX, 1.0F, 0.0F, 0.0F);
+        GlStateManager.scale(-scale, -scale, scale);
         boolean lighting = GL11.glGetBoolean(GL11.GL_LIGHTING);
         GlStateManager.disableLighting();
         GlStateManager.depthMask(false);
-        GlStateManager.disableDepthTest();
-        GlStateManager.disableTexture();
+        GlStateManager.disableDepth();
+        GlStateManager.disableTexture2D();
         GlStateManager.enableBlend();
         GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder buffer = tessellator.getBuffer();
+        WorldRenderer wr = tessellator.getWorldRenderer();
 
-        int j = mc.fontRenderer.getStringWidth(fuseText) / 2;
+        int j = mc.fontRendererObj.getStringWidth(fuseText) / 2;
 
-        buffer.begin(7, DefaultVertexFormats.POSITION_COLOR);
-        buffer.pos((double)(-j - 1), (double)(-1 ), 0.0D).color(0, 0, 0, 64).endVertex();
-        buffer.pos((double)(-j - 1), (double)(8), 0.0D).color(0, 0, 0, 64).endVertex();
-        buffer.pos((double)(j + 1), (double)(8), 0.0D).color(0, 0, 0, 64).endVertex();
-        buffer.pos((double)(j + 1), (double)(-1), 0.0D).color(0, 0, 0, 64).endVertex();
+        wr.begin(7, DefaultVertexFormats.POSITION_COLOR);
+        wr.pos((double)(-j - 1), (double)(-1 ), 0.0D).color(0, 0, 0, 64).endVertex();
+        wr.pos((double)(-j - 1), (double)(8), 0.0D).color(0, 0, 0, 64).endVertex();
+        wr.pos((double)(j + 1), (double)(8), 0.0D).color(0, 0, 0, 64).endVertex();
+        wr.pos((double)(j + 1), (double)(-1), 0.0D).color(0, 0, 0, 64).endVertex();
         tessellator.draw();
 
-        GlStateManager.enableTexture();
-        mc.fontRenderer.drawString(fuseText, -j,0, 553648127);
-        GlStateManager.enableDepthTest();
+        GlStateManager.enableTexture2D();
+        mc.fontRendererObj.drawString(fuseText, -j,0, 553648127);
+        GlStateManager.enableDepth();
         GlStateManager.depthMask(true);
         if(lighting)
             GlStateManager.enableLighting();
-        mc.fontRenderer.drawString(fuseText, -j,0, -1);
+        mc.fontRendererObj.drawString(fuseText, -j,0, -1);
         GlStateManager.disableBlend();
-        GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         GlStateManager.popMatrix();
     }
-
 
     private static String ticksToTime(int ticks){
         if(ticks > 20*3600){
@@ -116,4 +115,6 @@ public class TNTCountdownRenderer {
             return s+"."+ms+" s";
         }
     }
+
+
 }

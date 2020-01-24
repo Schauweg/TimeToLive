@@ -1,22 +1,38 @@
 package schauweg.timetolive;
 
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
-import org.apache.logging.log4j.LogManager;
+import net.minecraftforge.fml.common.SidedProxy;
+import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import org.apache.logging.log4j.Logger;
+import schauweg.timetolive.proxy.CommonProxy;
 
-// The value here should match an entry in the META-INF/mods.toml file
-@Mod(Main.MOD_ID)
-public class Main
-{
+@Mod(modid = Reference.MODID, version = Reference.VERSION, name = Reference.MODNAME)
+public class Main {
 
-    public static final String MOD_ID = "timetolive";
+    @SidedProxy(clientSide = Reference.CLIENT_PROXY_CLASS, serverSide = Reference.SERVER_PROXY_CLASS)
+    public static CommonProxy proxy;
 
-    // Directly reference a log4j logger.
-    private static final Logger LOGGER = LogManager.getLogger();
+    @Mod.Instance
+    public static Main instance;
 
-    public Main() {
-        MinecraftForge.EVENT_BUS.register(new TNTCountdownRenderer());
+    public static Logger logger;
+
+    @Mod.EventHandler
+    public void preInit(FMLPreInitializationEvent event){
+        logger = event.getModLog();
+        proxy.preInit(event);
+    }
+
+    @Mod.EventHandler
+    public void init(FMLInitializationEvent e) {
+        proxy.init(e);
+    }
+
+    @Mod.EventHandler
+    public void postInit(FMLPostInitializationEvent e) {
+        proxy.postInit(e);
     }
 
 }
