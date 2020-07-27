@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "schauweg.timetolive.mixin",
+  "client": [
+    "MixinTntCountdown"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "timetolive",
+  "version": "${version}",
+
+  "name": "Time To Live",
+  "description": "Displays a countdown above a TNT entity!",
+  "authors": [
+    "Schauweg"
+  ],
+
+  "license": "CC0-1.0",
+  "icon": "assets/timetolive/icon.png",
+
+  "accessWidener" : "timetolive.accesswidener",
+
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "schauweg.timetolive.Main"
+    ]
+  },
+  "mixins": [
+    "timetolive.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.8.0",
+    "fabric": "*",
+    "minecraft": "1.16.1"
+  }
+}
