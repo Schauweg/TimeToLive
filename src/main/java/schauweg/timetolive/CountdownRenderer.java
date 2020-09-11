@@ -57,10 +57,8 @@ public class CountdownRenderer {
         double y = passedEntity.prevY + (passedEntity.getY() - passedEntity.prevY) * partialTicks;
         double z = passedEntity.prevZ + (passedEntity.getZ() - passedEntity.prevZ) * partialTicks;
 
-        EntityRenderDispatcher renderManager = MinecraftClient.getInstance().getEntityRenderManager();
+        EntityRenderDispatcher renderManager = MinecraftClient.getInstance().getEntityRenderDispatcher();
         matrices.translate(x - renderManager.camera.getPos().x, y - renderManager.camera.getPos().y + passedEntity.getHeight() + 0.5F, z - renderManager.camera.getPos().z);
-
-
 
         GL11.glNormal3f(0.0F, 1.0F, 0.0F);
         RenderSystem.disableLighting();
