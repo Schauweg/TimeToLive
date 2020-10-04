@@ -10,10 +10,6 @@ archivesBaseName = "Fabric-${project.minecraft_version}-${project.name}"
 version = project.mod_version
 group = project.maven_group
 
-minecraft {
-	accessWidener = file("src/main/resources/timetolive.accesswidener")
-}
-
 dependencies {
 	minecraft "com.mojang:minecraft:1.16.3"
 	mappings "net.fabricmc:yarn:1.16.3+build.1:v2"

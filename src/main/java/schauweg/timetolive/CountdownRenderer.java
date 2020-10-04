@@ -12,6 +12,7 @@ import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Quaternion;
 import net.minecraft.util.math.Vec3d;
 import org.lwjgl.opengl.GL11;
+import schauweg.timetolive.mixin.CreeperEntityMixin;
 
 import java.util.stream.StreamSupport;
 
@@ -38,7 +39,7 @@ public class CountdownRenderer {
         StreamSupport.stream(mc.world.getEntities().spliterator(), false).filter(entity -> entity instanceof CreeperEntity && entity != cameraEntity && entity.isAlive() && entity.getPassengersDeep().isEmpty() && entity.shouldRender(cameraPos.getX(), cameraPos.getY(), cameraPos.getZ()) && (entity.ignoreCameraFrustum || frustum.isVisible(entity.getBoundingBox()))).map(CreeperEntity.class::cast).forEach(entity -> {
 
             if (entity.getIgnited()){
-                int fuse = entity.fuseTime - entity.currentFuseTime;
+                int fuse = ((CreeperEntityMixin)entity).getFuseTime() - ((CreeperEntityMixin)entity).getCurrentFuseTime();
                 renderCountdown(entity, matrices, partialTicks, camera, cameraEntity, fuse);
             }
 

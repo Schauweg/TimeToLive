@@ -9,9 +9,6 @@
     "Schauweg"
   ],
   "icon": "assets/timetolive/icon.png",
-
-  "accessWidener" : "timetolive.accesswidener",
-
   "environment": "client",
   "entrypoints": {
     "client": [
