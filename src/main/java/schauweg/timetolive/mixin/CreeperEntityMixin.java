@@ -14,6 +14,4 @@ public interface CreeperEntityMixin {
     @Accessor("fuseTime")
     int getFuseTime();
 
-
-
 }
