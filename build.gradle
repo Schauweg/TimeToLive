@@ -17,6 +17,15 @@ dependencies {
 
 	//Fabric api
 	modImplementation "net.fabricmc.fabric-api:fabric-api:0.29.3+1.16"
+
+	//Cloth Config
+	modImplementation("me.shedaniel.cloth:config-2:${project.cloth_config}") {
+		exclude(group: "net.fabricmc.fabric-api")
+	}
+	include("me.shedaniel.cloth:config-2:${project.cloth_config}")
+
+	//Modmenu
+	modImplementation "io.github.prospector:modmenu:${project.modmenu}"
 }
 
 processResources {

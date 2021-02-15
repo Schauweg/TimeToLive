@@ -1,0 +1,10 @@
+{
+  "timetolive.config.menu": "Time To Live Config Menu",
+  "timetolive.config.general": "General",
+  "timetolive.config.option.enable": "Enable or Disable the countdown",
+  "timetolive.config.option.enable.enabled": "Enabled",
+  "timetolive.config.option.enable.disabled": "Disabled",
+  "timetolive.config.option.displayticks": "Display the countdown as ticks or seconds",
+  "timetolive.config.option.displayticks.ticks": "Ticks",
+  "timetolive.config.option.displayticks.seconds": "Seconds"
+}

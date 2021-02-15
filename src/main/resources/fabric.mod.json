@@ -13,7 +13,8 @@
   "entrypoints": {
     "client": [
       "schauweg.timetolive.Main"
-    ]
+    ],
+    "modmenu": [ "schauweg.timetolive.modmenu.TTLModMenuIntegration" ]
   },
   "mixins": [
     "timetolive.mixins.json"

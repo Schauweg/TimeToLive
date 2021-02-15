@@ -12,6 +12,8 @@ import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Quaternion;
 import net.minecraft.util.math.Vec3d;
 import org.lwjgl.opengl.GL11;
+import schauweg.timetolive.config.TTLConfig;
+import schauweg.timetolive.config.TTLConfigManger;
 import schauweg.timetolive.mixin.CreeperEntityMixin;
 
 import java.util.stream.StreamSupport;
@@ -71,7 +73,7 @@ public class CountdownRenderer {
 
         matrices.scale(-0.025F, -0.025F, 0.025F);
 
-        String time = ticksToTime(fuse);
+        String time = TTLConfigManger.getConfig().isDisplayInTicks() ? fuse + " t" : ticksToTime(fuse);
         float offset = (float)(-mc.textRenderer.getWidth(time)/2);
         Matrix4f modelViewMatrix = matrices.peek().getModel();
         mc.textRenderer.draw(time, offset, 0, 553648127, false, modelViewMatrix, immediate, true, 1056964608, 15728640);
