@@ -20,7 +20,7 @@ import java.util.stream.StreamSupport;
 
 public class CountdownRenderer {
 
-    public static void render(MatrixStack matrices, float partialTicks, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projection, Frustum capturedFrustum) {
+    public static void render(MatrixStack matrices, float partialTicks, Camera camera, Matrix4f projection, Frustum capturedFrustum) {
         MinecraftClient mc = MinecraftClient.getInstance();
         if(mc.world == null || !MinecraftClient.isHudEnabled()) {
             return;
@@ -51,7 +51,7 @@ public class CountdownRenderer {
     }
 
 
-
+    @SuppressWarnings( "deprecation" )
     private static void renderCountdown(Entity passedEntity, MatrixStack matrices, float partialTicks, Camera camera, Entity viewPoint, int fuse){
         MinecraftClient mc = MinecraftClient.getInstance();
 

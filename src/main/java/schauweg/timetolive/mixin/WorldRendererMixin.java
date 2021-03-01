@@ -20,7 +20,7 @@ public class WorldRendererMixin {
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/WorldRenderer;checkEmpty(Lnet/minecraft/client/util/math/MatrixStack;)V", ordinal = 0))
     private void render(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projection, CallbackInfo ci) {
         if (!TTLConfigManger.getConfig().isOverlayActive()) return;
-        CountdownRenderer.render(matrices, tickDelta, camera, gameRenderer, lightmapTextureManager, projection, this.capturedFrustum);
+        CountdownRenderer.render(matrices, tickDelta, camera, projection, this.capturedFrustum);
     }
 
 }

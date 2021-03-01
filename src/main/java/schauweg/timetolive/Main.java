@@ -13,7 +13,6 @@ public class Main implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-
         TTLConfigManger.initializeConfig();
     }
 }
