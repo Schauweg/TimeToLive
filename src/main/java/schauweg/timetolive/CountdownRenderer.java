@@ -1,8 +1,10 @@
 package schauweg.timetolive;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.google.common.collect.Iterables;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.*;
+import net.minecraft.client.render.Camera;
+import net.minecraft.client.render.Frustum;
+import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
@@ -11,8 +13,6 @@ import net.minecraft.entity.mob.CreeperEntity;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Quaternion;
 import net.minecraft.util.math.Vec3d;
-import org.lwjgl.opengl.GL11;
-import schauweg.timetolive.config.TTLConfig;
 import schauweg.timetolive.config.TTLConfigManger;
 import schauweg.timetolive.mixin.CreeperEntityMixin;
 
@@ -38,16 +38,16 @@ public class CountdownRenderer {
             frustum.setPosition(cameraPos.getX(), cameraPos.getY(), cameraPos.getZ());
         }
 
-        StreamSupport.stream(mc.world.getEntities().spliterator(), false).filter(entity -> entity instanceof CreeperEntity && entity != cameraEntity && entity.isAlive() && entity.getPassengersDeep().isEmpty() && entity.shouldRender(cameraPos.getX(), cameraPos.getY(), cameraPos.getZ()) && (entity.ignoreCameraFrustum || frustum.isVisible(entity.getBoundingBox()))).map(CreeperEntity.class::cast).forEach(entity -> {
+        StreamSupport.stream(mc.world.getEntities().spliterator(), false).filter(entity -> entity instanceof CreeperEntity && entity != cameraEntity && entity.isAlive() && Iterables.isEmpty(entity.getPassengersDeep()) && entity.shouldRender(cameraPos.getX(), cameraPos.getY(), cameraPos.getZ()) && (entity.ignoreCameraFrustum || frustum.isVisible(entity.getBoundingBox()))).map(CreeperEntity.class::cast).forEach(entity -> {
 
-            if (entity.getIgnited()){
+            if (entity.isIgnited()){
                 int fuse = ((CreeperEntityMixin)entity).getFuseTime() - ((CreeperEntityMixin)entity).getCurrentFuseTime();
                 renderCountdown(entity, matrices, partialTicks, camera, cameraEntity, fuse);
             }
 
         });
 
-        StreamSupport.stream(mc.world.getEntities().spliterator(), false).filter(entity -> entity instanceof TntEntity && entity != cameraEntity && entity.isAlive() && entity.getPassengersDeep().isEmpty() && entity.shouldRender(cameraPos.getX(), cameraPos.getY(), cameraPos.getZ()) && (entity.ignoreCameraFrustum || frustum.isVisible(entity.getBoundingBox()))).map(TntEntity.class::cast).forEach(entity -> renderCountdown(entity, matrices, partialTicks, camera, cameraEntity, entity.getFuseTimer()));
+        StreamSupport.stream(mc.world.getEntities().spliterator(), false).filter(entity -> entity instanceof TntEntity && entity != cameraEntity && entity.isAlive() && Iterables.isEmpty(entity.getPassengersDeep()) && entity.shouldRender(cameraPos.getX(), cameraPos.getY(), cameraPos.getZ()) && (entity.ignoreCameraFrustum || frustum.isVisible(entity.getBoundingBox()))).map(TntEntity.class::cast).forEach(entity -> renderCountdown(entity, matrices, partialTicks, camera, cameraEntity, entity.getFuse()));
     }
 
 
@@ -63,10 +63,7 @@ public class CountdownRenderer {
         EntityRenderDispatcher renderManager = MinecraftClient.getInstance().getEntityRenderDispatcher();
         matrices.translate(x - renderManager.camera.getPos().x, y - renderManager.camera.getPos().y + passedEntity.getHeight() + 0.5F, z - renderManager.camera.getPos().z);
 
-        GL11.glNormal3f(0.0F, 1.0F, 0.0F);
-        RenderSystem.disableLighting();
         VertexConsumerProvider.Immediate immediate = mc.getBufferBuilders().getEntityVertexConsumers();
-
         Quaternion rotation = camera.getRotation().copy();
         rotation.scale(-1.0F);
         matrices.multiply(rotation);
