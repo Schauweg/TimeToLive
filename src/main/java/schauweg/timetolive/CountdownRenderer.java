@@ -34,7 +34,7 @@ public class CountdownRenderer {
             frustum = capturedFrustum;
         }
         else {
-            frustum = new Frustum(matrices.peek().getModel(), projection);
+            frustum = new Frustum(matrices.peek().getPositionMatrix(), projection);
             frustum.setPosition(cameraPos.getX(), cameraPos.getY(), cameraPos.getZ());
         }
 
@@ -72,7 +72,7 @@ public class CountdownRenderer {
 
         String time = TTLConfigManger.getConfig().isDisplayInTicks() ? fuse + " t" : ticksToTime(fuse);
         float offset = (float)(-mc.textRenderer.getWidth(time)/2);
-        Matrix4f modelViewMatrix = matrices.peek().getModel();
+        Matrix4f modelViewMatrix = matrices.peek().getPositionMatrix();
         mc.textRenderer.draw(time, offset, 0, 553648127, false, modelViewMatrix, immediate, true, 1056964608, 15728640);
         mc.textRenderer.draw(time, offset, 0, -1, false, modelViewMatrix, immediate, false, 0, 15728640);
 
