@@ -1,90 +1,138 @@
 plugins {
-	id 'fabric-loom' version '0.10-SNAPSHOT'
-	id 'maven-publish'
+    id 'fabric-loom' version '1.0-SNAPSHOT'
+    id 'maven-publish'
+
+    id "com.modrinth.minotaur" version "2.+"
+    id 'com.matthewprenger.cursegradle' version '1.4.0'
 }
 
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
 
-archivesBaseName = "Fabric-${project.minecraft_version}-${project.name}"
+archivesBaseName = "${project.mod_name} ${project.mod_version} (${project.minecraft_version})"
 version = project.mod_version
 group = project.maven_group
+def CHANGELOG = new File("./gradle", "CHANGELOG.md").text
+def SUPPORTED_VERSIONS = Arrays.asList(project.supported_versions.split(','))
 
 repositories {
-	maven {
-		name = 'Cloth Config'
-		url = 'https://maven.shedaniel.me'
-	}
-	maven {
-		name = 'TerraformersMC'
-		url = 'https://maven.terraformersmc.com/releases'
-	}
+    maven {
+        name = 'Cloth Config'
+        url = 'https://maven.shedaniel.me'
+    }
+    maven {
+        name = 'TerraformersMC'
+        url = 'https://maven.terraformersmc.com/releases'
+    }
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-	// Fabric API. This is technically optional, but you probably want it anyway.
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    // Fabric API. This is technically optional, but you probably want it anyway.
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	//Cloth Config
-	modApi("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config}") {
-		exclude(group: "net.fabricmc.fabric-api")
-	}
-	include("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config}")
+    //Cloth Config
+    modApi("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config}") {
+        exclude(group: "net.fabricmc.fabric-api")
+    }
+    include("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config}")
 
-	//Modmenu
-	modImplementation ("com.terraformersmc:modmenu:${project.modmenu}"){
-		exclude(group : "net.fabricmc.fabric-api")
-	}
+    //Modmenu
+    modImplementation("com.terraformersmc:modmenu:${project.modmenu}") {
+        exclude(group: "net.fabricmc.fabric-api")
+    }
 }
 
 processResources {
-	inputs.property "version", project.version
+    inputs.property "version", project.version
 
-	filesMatching("fabric.mod.json") {
-		expand "version": project.version
-	}
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
 }
 
-// ensure that the encoding is set to UTF-8, no matter what the system default is
-// this fixes some edge cases with special characters not displaying correctly
-// see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
 tasks.withType(JavaCompile) {
-	options.encoding = "UTF-8"
+    options.encoding = "UTF-8"
+    it.options.release = 17
 }
 
-// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-// if it is present.
-// If you remove this task, sources will not be generated.
-task sourcesJar(type: Jar, dependsOn: classes) {
-	classifier = "sources"
-	from sourceSets.main.allSource
+java {
+    withSourcesJar()
 }
+
 
 jar {
-	from "LICENSE"
+    from("LICENSE") {
+        rename { "${it}_${archivesBaseName}" }
+    }
 }
 
 // configure the maven publication
+// configure the maven publication
 publishing {
-	publications {
-		mavenJava(MavenPublication) {
-			// add all the jars that should be included when publishing to maven
-			artifact(remapJar) {
-				builtBy remapJar
-			}
-			artifact(sourcesJar) {
-				builtBy remapSourcesJar
-			}
-		}
-	}
+    publications {
+        mavenJava(MavenPublication) {
+            // add all the jars that should be included when publishing to maven
+            artifact(remapJar) {
+                builtBy remapJar
+            }
+            artifact(sourcesJar) {
+                builtBy remapSourcesJar
+            }
+        }
+    }
 
-	// select the repositories you want to publish to
-	repositories {
-		// uncomment to publish to the local maven
-		// mavenLocal()
-	}
+    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
+    repositories {
+        // Add repositories to publish to here.
+        // Notice: This block does NOT have the same function as the block in the top level.
+        // The repositories here will be used for publishing your artifact, not for
+        // retrieving dependencies.
+    }
+}
+
+import com.modrinth.minotaur.dependencies.ModDependency
+if (System.getenv().MODRINTH_TOKEN) modrinth {
+    projectId = project.modrinth_id
+    versionName = archivesBaseName
+    versionNumber = "${project.mod_version}-${project.minecraft_version}"
+    versionType = "beta"
+    uploadFile = tasks.remapJar
+    gameVersions = [project.minecraft_version]
+    loaders = ["fabric"]
+    dependencies = [
+            new ModDependency("fabric-api", "required"),
+            new ModDependency("cloth-config", "embedded"),
+            new ModDependency("modmenu", "optional")
+    ]
+}
+
+if (System.getenv().CURSEFORGE_API_KEY) curseforge {
+    apiKey = System.getenv().CURSEFORGE_API_KEY
+
+    project {
+        id = project.curseforge_id
+        addGameVersion "Fabric"
+        for (final def cf_ver in SUPPORTED_VERSIONS) addGameVersion cf_ver
+
+        changelog = CHANGELOG
+        releaseType = "beta"
+
+        mainArtifact(remapJar) {
+            displayName = archivesBaseName
+            relations {
+                requiredDependency "fabric-api"
+                embeddedLibrary "cloth-config"
+
+                optionalDependency 'modmenu'
+            }
+        }
+
+        afterEvaluate { uploadTask.dependsOn(remapJar) }
+    }
+
+    options { forgeGradleIntegration = false }
 }

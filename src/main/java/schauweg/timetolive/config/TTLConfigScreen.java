@@ -5,7 +5,6 @@ import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 
 import java.util.function.Function;
 
@@ -16,27 +15,25 @@ public class TTLConfigScreen {
 
         ConfigBuilder builder = ConfigBuilder.create()
                 .setParentScreen(parent)
-                .setTitle(new TranslatableText("timetolive.config.menu"));
+                .setTitle(Text.translatable("timetolive.config.menu"));
 
-        ConfigCategory general = builder.getOrCreateCategory(new TranslatableText("timetolive.config.general"));
+        ConfigCategory general = builder.getOrCreateCategory(Text.translatable("timetolive.config.general"));
         ConfigEntryBuilder entryBuilder = builder.entryBuilder();
 
-        general.addEntry(entryBuilder.startBooleanToggle(new TranslatableText("timetolive.config.option.enable"), config.isOverlayActive())
+        general.addEntry(entryBuilder.startBooleanToggle(Text.translatable("timetolive.config.option.enable"), config.isOverlayActive())
                 .setDefaultValue(true)
-                .setSaveConsumer(newValue -> config.setOverlayActive(newValue))
+                .setSaveConsumer(config::setOverlayActive)
                 .setYesNoTextSupplier(getYesNoSupplier("timetolive.config.option.enable.enabled", "timetolive.config.option.enable.disabled"))
                 .build());
 
 
-        general.addEntry(entryBuilder.startBooleanToggle(new TranslatableText("timetolive.config.option.displayticks"), config.isDisplayInTicks())
+        general.addEntry(entryBuilder.startBooleanToggle(Text.translatable("timetolive.config.option.displayticks"), config.isDisplayInTicks())
                 .setDefaultValue(false)
-                .setSaveConsumer(newValue -> config.setDisplayInTicks(newValue))
+                .setSaveConsumer(config::setDisplayInTicks)
                 .setYesNoTextSupplier(getYesNoSupplier("timetolive.config.option.displayticks.ticks", "timetolive.config.option.displayticks.seconds"))
                 .build());
 
-        builder.setSavingRunnable(() -> {
-            TTLConfigManger.save();
-        });
+        builder.setSavingRunnable(TTLConfigManger::save);
 
         return builder.build();
     }
@@ -45,9 +42,9 @@ public class TTLConfigScreen {
     private static Function<Boolean, Text> getYesNoSupplier(String keyYes, String keyNo){
         return x ->{
             if (x)
-                return new TranslatableText(keyYes);
+                return Text.translatable(keyYes);
             else
-                return new TranslatableText(keyNo);
+                return Text.translatable(keyNo);
         };
     }
 
