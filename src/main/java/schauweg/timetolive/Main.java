@@ -1,22 +1,18 @@
 package schauweg.timetolive;
 
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.Mod;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import net.fabricmc.api.ClientModInitializer;
+import schauweg.timetolive.config.TTLConfigManger;
 
-// The value here should match an entry in the META-INF/mods.toml file
-@Mod(Main.MOD_ID)
-public class Main
-{
+public class Main implements ClientModInitializer {
 
     public static final String MOD_ID = "timetolive";
+    public static final Gson GSON = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).setPrettyPrinting().create();
 
-    // Directly reference a log4j logger.
-    private static final Logger LOGGER = LogManager.getLogger();
-
-    public Main() {
-        MinecraftForge.EVENT_BUS.register(new TNTCountdownRenderer());
+    @Override
+    public void onInitializeClient() {
+        TTLConfigManger.initializeConfig();
     }
-
 }

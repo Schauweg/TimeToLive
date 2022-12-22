@@ -1,134 +1,138 @@
-buildscript {
-    repositories {
-        maven { url = 'https://files.minecraftforge.net/maven' }
-        jcenter()
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
-    }
+plugins {
+    id 'fabric-loom' version '1.0-SNAPSHOT'
+    id 'maven-publish'
+
+    id "com.modrinth.minotaur" version "2.+"
+    id 'com.matthewprenger.cursegradle' version '1.4.0'
 }
-apply plugin: 'net.minecraftforge.gradle'
-// Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
-apply plugin: 'eclipse'
-apply plugin: 'maven-publish'
 
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
 
-ext.configFile = file('build.properties')
-ext.config = parseConfig(configFile)
+archivesBaseName = "${project.mod_name} ${project.mod_version} (${project.minecraft_version})"
+version = project.mod_version
+group = project.maven_group
+def CHANGELOG = new File("./gradle", "CHANGELOG.md").text
+def SUPPORTED_VERSIONS = Arrays.asList(project.supported_versions.split(','))
 
-version = config.version
-group = "schauweg.${config.mod_id}" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = config.mod_name
-
-sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
-
-minecraft {
-    // The mappings can be changed at any time, and must be in the following format.
-    // snapshot_YYYYMMDD   Snapshot are built nightly.
-    // stable_#            Stables are built at the discretion of the MCP team.
-    // Use non-default mappings at your own risk. they may not always work.
-    // Simply re-run your setup task after changing the mappings to update your workspace.
-    mappings channel: 'snapshot', version: '20190719-1.14.3'
-    // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
-    
-    // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
-
-    // Default run configurations.
-    // These can be tweaked, removed, or duplicated as needed.
-    runs {
-        client {
-            workingDirectory project.file('run')
-
-            // Recommended logging data for a userdev environment
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-
-            // Recommended logging level for the console
-            property 'forge.logging.console.level', 'debug'
-
-            mods {
-                examplemod {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        server {
-            workingDirectory project.file('run')
-
-            // Recommended logging data for a userdev environment
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-
-            // Recommended logging level for the console
-            property 'forge.logging.console.level', 'debug'
-
-            mods {
-                examplemod {
-                    source sourceSets.main
-                }
-            }
-        }
+repositories {
+    maven {
+        name = 'Cloth Config'
+        url = 'https://maven.shedaniel.me'
+    }
+    maven {
+        name = 'TerraformersMC'
+        url = 'https://maven.terraformersmc.com/releases'
     }
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.14.4-28.1.0'
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+    // Fabric API. This is technically optional, but you probably want it anyway.
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    //Cloth Config
+    modApi("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config}") {
+        exclude(group: "net.fabricmc.fabric-api")
+    }
+    include("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config}")
+
+    //Modmenu
+    modImplementation("com.terraformersmc:modmenu:${project.modmenu}") {
+        exclude(group: "net.fabricmc.fabric-api")
+    }
 }
 
 processResources {
-    // replace stuff in mcmod.info, nothing else
-    from(sourceSets.main.resources.srcDirs) {
-        include 'META-INF/mods.toml'
+    inputs.property "version", project.version
 
-        // replace version and mcversion
-        expand 'version': version
-    }
-
-    // copy everything else, thats not the mods.toml
-    from(sourceSets.main.resources.srcDirs) {
-        exclude 'META-INF/mods.toml', '**/psd/**'
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
     }
 }
 
-def parseConfig(File config) {
-    config.withReader {
-        def prop = new Properties()
-        prop.load(it)
-        return (new ConfigSlurper().parse(prop))
-    }
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+    it.options.release = 17
 }
+
+java {
+    withSourcesJar()
+}
+
 
 jar {
-    archiveName = "${config.mc_version}-${baseName}-${version}.${extension}"
-
-    manifest {
-        attributes([
-            "Specification-Title": "${config.mod_id}",
-            "Specification-Vendor": "schauweg",
-            "Specification-Version": "1", // We are version 1 of ourselves
-            "Implementation-Title": "${config.mod_id}",
-            "Implementation-Version": "${version}",
-            "Implementation-Vendor" :"schauweg",
-            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
-        ])
+    from("LICENSE") {
+        rename { "${it}_${archivesBaseName}" }
     }
 }
 
-def reobfFile = file("$buildDir/reobfJar/output.jar")
-def reobfArtifact = artifacts.add('default', reobfFile) {
-    type 'jar'
-    builtBy 'reobfJar'
-}
-
+// configure the maven publication
+// configure the maven publication
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifact reobfArtifact
+            // add all the jars that should be included when publishing to maven
+            artifact(remapJar) {
+                builtBy remapJar
+            }
+            artifact(sourcesJar) {
+                builtBy remapSourcesJar
+            }
         }
     }
+
+    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
     repositories {
-        maven {
-            url "file:///${project.projectDir}/mcmodsrepo"
-        }
+        // Add repositories to publish to here.
+        // Notice: This block does NOT have the same function as the block in the top level.
+        // The repositories here will be used for publishing your artifact, not for
+        // retrieving dependencies.
     }
+}
+
+import com.modrinth.minotaur.dependencies.ModDependency
+if (System.getenv().MODRINTH_TOKEN) modrinth {
+    projectId = project.modrinth_id
+    versionName = archivesBaseName
+    versionNumber = "${project.mod_version}-${project.minecraft_version}"
+    versionType = "beta"
+    uploadFile = tasks.remapJar
+    gameVersions = [project.minecraft_version]
+    loaders = ["fabric"]
+    dependencies = [
+            new ModDependency("fabric-api", "required"),
+            new ModDependency("cloth-config", "embedded"),
+            new ModDependency("modmenu", "optional")
+    ]
+}
+
+if (System.getenv().CURSEFORGE_API_KEY) curseforge {
+    apiKey = System.getenv().CURSEFORGE_API_KEY
+
+    project {
+        id = project.curseforge_id
+        addGameVersion "Fabric"
+        for (final def cf_ver in SUPPORTED_VERSIONS) addGameVersion cf_ver
+
+        changelog = CHANGELOG
+        releaseType = "beta"
+
+        mainArtifact(remapJar) {
+            displayName = archivesBaseName
+            relations {
+                requiredDependency "fabric-api"
+                embeddedLibrary "cloth-config"
+
+                optionalDependency 'modmenu'
+            }
+        }
+
+        afterEvaluate { uploadTask.dependsOn(remapJar) }
+    }
+
+    options { forgeGradleIntegration = false }
 }
