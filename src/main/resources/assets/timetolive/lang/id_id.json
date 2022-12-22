@@ -1,0 +1,10 @@
+{
+  "timetolive.config.menu": "Menu Pengaturan Time To Live",
+  "timetolive.config.general": "Umum",
+  "timetolive.config.option.enable": "Aktifkan atau Nonaktifkan hitung mundur",
+  "timetolive.config.option.enable.enabled": "Aktif",
+  "timetolive.config.option.enable.disabled": "Nonaktif",
+  "timetolive.config.option.displayticks": "Tampilkan hitung mundur sebagai ketuk atau detik",
+  "timetolive.config.option.displayticks.ticks": "Ketuk",
+  "timetolive.config.option.displayticks.seconds": "Detik"
+}
